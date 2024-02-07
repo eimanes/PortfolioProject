@@ -124,7 +124,7 @@ const register = async (req, res) => {
             from: process.env.EMAIL_USERNAME,
             to: email,
             subject: 'Account Verification',
-            html: `<p>Click <a href="http://localhost:3001/auth/verify-email/${userVerification.userId}/${userVerification.uniqueString}">here</a> to verify your email.</p>`
+            html: `<p>Click <a href="http://localhost:3001/auth/verify-email?userId=${userVerification.userId}&token=${userVerification.uniqueString}">here</a> to verify your email.</p>`
         };
 
         transporter.sendMail(mailOptions, (error, info) => {
@@ -149,10 +149,10 @@ const register = async (req, res) => {
 /* EMAIL VERIFICATION USER */
 const verifyEmail = async (req, res) => {
     try {
-        const { userId, uniqueString } = req.params;
+        const { userId, token } = req.query;
 
         // Find the user verification entry in the database
-        const userVerification = await UserVerification.findOne({ userId, uniqueString });
+        const userVerification = await UserVerification.findOne({ userId, uniqueString: token });
 
         if (!userVerification) {
             return res.status(404).json({ success: false, error: "Verification token not found" });
@@ -229,7 +229,7 @@ const resendVerificationEmail = async (req, res) => {
             from: process.env.EMAIL_USERNAME,
             to: email,
             subject: 'Account Verification',
-            html: `<p>Click <a href="http://localhost:3001/auth/verify-email/${user._id}/${verificationToken}">here</a> to verify your email.</p>`
+            html: `<p>Click <a href="http://localhost:3001/auth/verify-email?userId=${user._id}&token=${verificationToken}">here</a> to verify your email.</p>`
         };
 
         // Send the verification email
@@ -371,11 +371,11 @@ const forgotPassword = async (req, res) => {
 /* RESET PASSWORD */
 const resetPassword = async (req, res) => {
     try {
-        const { userId, uniqueString } = req.query;
+        const { userId, token } = req.query;
         const { newPassword, confirmNewPassword } = req.body;
 
         // Check if reset token, new password, or confirm new password is missing or empty
-        if (!userId || !uniqueString) {
+        if (!userId || !token) {
             return res.status(400).json({
                 success: false,
                 error: "Reset token and UserId are required"
@@ -401,7 +401,7 @@ const resetPassword = async (req, res) => {
         }
 
         // Find the user by the reset token
-        const userVerification = await UserVerification.findOne({ userId, uniqueString });
+        const userVerification = await UserVerification.findOne({ userId, uniqueString: token });
 
         if (!userVerification) {
             return res.status(404).json({

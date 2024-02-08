@@ -8,6 +8,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import session from 'express-session';
+import passport from './config/passport.config.js'
 import authRoutes from './routes/auth.route.js';
 
 /*CONFIGURATION*/
@@ -39,6 +41,16 @@ const upload = multer({ storage });
 //Register route needed to be in index.js because it needs upload picture
 //app.post('/auth/register', upload.single('picture'), register);
 //app.post('/auth/register', register);
+
+/*PASSPORT SESSION */
+app.use(session({
+  secret: 'your-session-secret',
+  resave: false,
+  saveUninitialized: true,
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 /*ROUTES */
 app.use('/auth', authRoutes);

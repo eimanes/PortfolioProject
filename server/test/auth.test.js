@@ -1,3 +1,4 @@
+//TODO: Need to update with coennction to database
 import { expect } from 'chai';
 import { register, verifyEmail, resendVerificationEmail, login, forgotPassword, resetPassword } from '../controllers/auth.controller.js';
 

@@ -11,6 +11,8 @@ import { fileURLToPath } from 'url';
 import session from 'express-session';
 import passport from './config/passport.config.js'
 import authRoutes from './routes/auth.route.js';
+import userRoutes from './routes/user.route.js';
+import { updateUserController } from "./controllers/user.controller.js";
 
 /*CONFIGURATION*/
 const __filename = fileURLToPath(import.meta.url);
@@ -40,7 +42,7 @@ const upload = multer({ storage });
 /*ROUTES WITH FILES */
 //Register route needed to be in index.js because it needs upload picture
 //app.post('/auth/register', upload.single('picture'), register);
-//app.post('/auth/register', register);
+app.put('/user/update/:userId', upload.single('picture'), updateUserController);
 
 /*PASSPORT SESSION */
 app.use(session({
@@ -54,6 +56,7 @@ app.use(passport.session());
 
 /*ROUTES */
 app.use('/auth', authRoutes);
+app.use('/user', userRoutes);
 
 /*MONGOOSE SETUP */
 const PORT = process.env.PORT || 6001;

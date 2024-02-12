@@ -3,7 +3,6 @@ import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import multer from "multer";
 import helmet from 'helmet';
 import morgan from 'morgan';
 import path from 'path';
@@ -12,7 +11,7 @@ import session from 'express-session';
 import passport from './config/passport.config.js'
 import authRoutes from './routes/auth.route.js';
 import userRoutes from './routes/user.route.js';
-import { updateUserController } from "./controllers/user.controller.js";
+
 
 /*CONFIGURATION*/
 const __filename = fileURLToPath(import.meta.url);
@@ -28,21 +27,7 @@ app.use(bodyParser.urlencoded({ limit: '30mb', extended: true }));
 app.use(cors());
 app.use("/assets", express.static(path.join(__dirname, 'public/assets')));
 
-/* FILE STORAGE */
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, "public/assets");
-    },
-    filename: function(req, file, cb) {
-        cb(null, file.originalname);
-    }
-});
-const upload = multer({ storage });
 
-/*ROUTES WITH FILES */
-//Register route needed to be in index.js because it needs upload picture
-//app.post('/auth/register', upload.single('picture'), register);
-app.put('/user/update/:userId', upload.single('picture'), updateUserController);
 
 /*PASSPORT SESSION */
 app.use(session({

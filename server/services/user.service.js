@@ -5,7 +5,7 @@ dotenv.config();
 
 const getUserService = async (userId) => {
     let user;
-    const isUserId = /^[0-9a-fA-F]+$/.test(userId);
+    const isUserId = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(userId);
     if (isUserId) {
         user = await User.findOne({ userId });
     } else {
@@ -52,7 +52,15 @@ const getUsersListService = async (skip, limit, name, occupation, location) => {
     return users;
 };
 
-const updateUserService = async (userId, firstName, lastName, location, occupation, picturePath) => {
+const updateUserService = async (userId, userData) => {
+
+    const {
+        firstName, 
+        lastName, 
+        location, 
+        occupation, 
+        picturePath
+    } = userData;
 
     if (!userId) {
         throw ({

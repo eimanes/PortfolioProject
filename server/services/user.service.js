@@ -52,7 +52,6 @@ const getUsersListService = async (skip, limit, name, occupation, location) => {
     return users;
 };
 
-//TODO: Something wrong
 const updateUserService = async (userId, firstName, lastName, location, occupation, picturePath) => {
 
     if (!userId) {
@@ -63,7 +62,7 @@ const updateUserService = async (userId, firstName, lastName, location, occupati
         })
     }
 
-    const user = await User.findOne({ id_: userId, userId: userId });
+    const user = await User.findOne({ userId: userId });
     const countUser = await User.countDocuments({userId});
     if (countUser === 0 || !user) {
         throw ({

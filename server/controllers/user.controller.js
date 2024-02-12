@@ -31,7 +31,7 @@ const getUsersListController = async (req, res, next) => {
 };
 
 const updateUserController = async (req, res, next) => {
-    const userId = req.params;
+    const userId = req.params.userId;
     const {
         firstName, lastName, location, occupation, picturePath
     } = req.body;

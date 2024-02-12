@@ -1,5 +1,8 @@
+import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
+import nodemailer from 'nodemailer';
 import User from '../models/User.js';
+import UserVerification from '../models/UserVerification.js';
 
 dotenv.config();
 
@@ -100,6 +103,269 @@ const updateUserService = async (userId, userData) => {
     await user.save();
 
     return user;
-}
+};
 
-export { getUserService, getUsersListService, updateUserService};
+/* CHANGE USERNAME REQUEST */
+const changeUsernameReqService = async (userId) => {
+
+    if (!userId || userId.trim() === '') {
+        return res.status(400).json({ success: false, error: "UserId is required" });
+    }
+
+    // Find the user by email
+    const user = await User.findOne({ userId });
+
+    // If user doesn't exist, return error message
+    if (!user) {
+        return res.status(400).json({
+            success: false,
+            error: "User not found" 
+        });
+    }
+
+    const email = user.email;
+
+    // Generate a reset token using uuidv4
+    const verificationToken = uuidv4();
+
+    await UserVerification.findOneAndUpdate(
+        { userId, isUsername: true },
+        {
+            uniqueString: verificationToken,
+            expiresAt: new Date(Date.now() + 15 * 60 * 1000) 
+        },
+        { upsert: true, new: true } 
+    );
+
+
+    // Send an email with the reset token
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD,
+        }
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: email,
+        subject: 'Username Reset',
+        html: `<h1>UPDATE FROM FRONT END</h1><br><p>Copy <a>${verificationToken} here</a> to reset your password.</p>`
+    };
+
+    return new Promise((resolve, reject) => {
+        // Send the verification email
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error('Error sending username reset email:', error);
+                reject ({ 
+                    success: false, 
+                    error: 'Failed to send username reset email' 
+                });
+            } else {
+                console.log('Username reset email sent:', info.response);
+                resolve ({
+                    success: true,
+                    message: "Username reset email sent"
+                });
+            }
+        });
+    });
+};
+
+/* RESET USERNAME */
+const confirmChangeUsernameService = async (paramData, username) => {
+    const { userId, token } = paramData;
+
+    // Check if reset token, new password, or confirm new password is missing or empty
+    if (!userId || !token) {
+        return {
+            success: false,
+            error: "Reset token and UserId are required"
+        };
+    }
+
+    if (!username || username.length === 0) {
+        return {
+            success: false,
+            error: "New username are required"
+        };
+    }
+
+    // Check if the new username meets the requirements
+    const usernameRegex = /^[a-zA-Z0-9_]+$/; // Allows alphanumeric characters and underscore
+    if (!usernameRegex.test(username)) {
+        return { 
+            success: false, 
+            error: "Username can only contain alphanumeric characters and underscore" 
+        };
+    }
+
+    if (username.length < 5) {
+        return { 
+            success: false, 
+            error: "Username must be at least 5 characters long" 
+        };
+    }
+
+    // Find the user by the reset token
+    const userVerification = await UserVerification.findOne({ userId, uniqueString: token , isUsername: true });
+
+    if (!userVerification) {
+        return {
+            success: false,
+            error: "Verification token not found"
+        };
+    }
+
+    // Check if the verification token has expired
+    if (userVerification.expiresAt < Date.now()) {
+        return { 
+            success: false, 
+            error: "Verification token expired" 
+        };
+    }
+
+    // Find the user by user ID
+    const user = await User.findOne({userId});
+
+    if (!user) {
+        return { 
+            success: false, 
+            error: "User not found" 
+        };
+    }
+
+    user.username = username;
+    await user.save();
+    await UserVerification.findOneAndDelete(userVerification._id);
+
+    // Respond with success message
+    return { 
+        success: true, 
+        message: "Username reset successfully" 
+    };
+};
+
+/* CHANGE USERNAME REQUEST */
+const deleteUserReqService = async (userId) => {
+
+    if (!userId || userId.trim() === '') {
+        return { 
+            success: false, 
+            error: "UserId is required" 
+        };
+    }
+
+    // Find the user by email
+    const user = await User.findOne({ userId });
+
+    // If user doesn't exist, return error message
+    if (!user) {
+        return {
+            success: false,
+            error: "User not found" };
+    }
+
+    const email = user.email;
+
+    // Generate a reset token using uuidv4
+    const verificationToken = uuidv4();
+
+    await UserVerification.findOneAndUpdate(
+        { userId, isDeleteUser: true },
+        {
+            uniqueString: verificationToken,
+            expiresAt: new Date(Date.now() + 15 * 60 * 1000) 
+        },
+        { upsert: true, new: true } 
+    );
+
+
+    // Send an email with the reset token
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD,
+        }
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: email,
+        subject: 'Delete account',
+        html: `<h1>UPDATE FROM FRONT END</h1><br><p>Copy <a>${verificationToken} here</a> to reset your password.</p>`
+    };
+
+    return new Promise((resolve, reject) => {
+        // Send the verification email
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error('Error sending delete user email:', error);
+                reject ({ 
+                    success: false, 
+                    error: 'Failed to send udelete user email' 
+                });
+            } else {
+                console.log('Delete user email sent:', info.response);
+                resolve ({
+                    success: true,
+                    message: "Delete user email sent"
+                });
+            }
+        });
+    });
+};
+
+/* DELETE USER */
+const confirmDeleteUserService = async (userId, token) => {
+
+    if (!userId || !token) {
+        return {
+            success: false,
+            error: "Reset token and UserId are required"
+        };
+    }
+
+    // Find the user by the reset token
+    const userVerification = await UserVerification.findOne({ userId, uniqueString: token, isDeleteUser: true });
+
+    if (!userVerification) {
+        return {
+            success: false,
+            error: "Verification token not found"
+        };
+    }
+
+    // Check if the verification token has expired
+    if (userVerification.expiresAt < Date.now()) {
+        return { 
+            success: false, 
+            error: "Verification token expired" 
+        };
+    }
+
+    // Find the user by user ID
+    const user = await User.findOne({userId});
+
+    if (!user) {
+        return { 
+            success: false, 
+            error: "User not found" 
+        };
+    }
+
+    // Delete the user
+    await User.deleteOne({ userId });
+    await UserVerification.findOneAndDelete(userVerification._id);
+
+    // Respond with success message
+    return { 
+        success: true, 
+        message: "User deleted successfully" 
+    };
+};
+
+export { getUserService, getUsersListService, updateUserService, changeUsernameReqService, confirmChangeUsernameService, deleteUserReqService, confirmDeleteUserService };

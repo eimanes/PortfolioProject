@@ -1,5 +1,5 @@
 import express from "express";
-import { signUpController, verifyEmailController, resendVerificationEmailController, signInController, forgotPasswordController, resetPasswordController, changeUsernameReqController, resetUsernameController } from "../controllers/auth.controller.js";
+import { signUpController, verifyEmailController, resendVerificationEmailController, signInController, forgotPasswordController, resetPasswordController } from "../controllers/auth.controller.js";
 import passport from "../config/passport.config.js";
 const router = express.Router();
 
@@ -9,8 +9,6 @@ router.get("/verify-email", verifyEmailController);
 router.post("/resend-verify-email", resendVerificationEmailController);
 router.post("/forgot-password", forgotPasswordController);
 router.put("/reset-password", resetPasswordController);
-router.post("/change-username", changeUsernameReqController);
-router.put("/reset-username", resetUsernameController);
 
 /* GOOGLE AUTH */
 router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));

@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { signUpService, verifyEmailService, resendVerificationEmailService, signInService, forgotPasswordService, resetPasswordService, changeUsernameReqService, resetUsernameService  } from '../services/auth.service.js';
+import { signUpService, verifyEmailService, resendVerificationEmailService, signInService, forgotPasswordService, resetPasswordService  } from '../services/auth.service.js';
 
 dotenv.config();
 
@@ -144,47 +144,7 @@ const resetPasswordController = async (req, res) => {
     }
 };
 
-/* REQ CHANGE USERNAME */
-const changeUsernameReqController = async (req, res) => {
-    const { email } = req.body;
-    try {
-        const result = await changeUsernameReqService(email);
-        if (result.success) {
-            return res.status(200).json(result);
-        } else {
-            return res.status(400).json(result);
-        }
 
-    } catch (error) {
-        console.error('Forgot password error:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: error.message });
-    }
-};
 
-/* RESET USERNAME */
-const resetUsernameController = async (req, res) => {
-    const { userId, token } = req.query;
-    const newUsername = req.body;
-    const paramData = { userId, token };
-    
-    try {
-        const result = await resetUsernameService(paramData, newUsername);
-        if (result.success) {
-            return res.status(200).json(result);
-        } else {
-            return res.status(400).json(result);
-        }
-        
-    } catch (error) {
-        console.error('Reset password error:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
-        });
-    }
-};
-
-export { signUpController, verifyEmailController, resendVerificationEmailController, signInController, forgotPasswordController, resetPasswordController, changeUsernameReqController, resetUsernameController };
+export { signUpController, verifyEmailController, resendVerificationEmailController, signInController, forgotPasswordController, resetPasswordController };
 

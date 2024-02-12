@@ -1,4 +1,12 @@
-import { getUserService, getUsersListService, updateUserService } from "../services/user.service.js";
+import { 
+    getUserService, 
+    getUsersListService, 
+    updateUserService, 
+    changeUsernameReqService, 
+    confirmChangeUsernameService, 
+    deleteUserReqService, 
+    confirmDeleteUserService 
+} from "../services/user.service.js";
 
 const getUserController = async (req, res, next) => {
     try {
@@ -50,7 +58,97 @@ const updateUserController = async (req, res, next) => {
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
-}
+};
 
+/* REQ CHANGE USERNAME */
+const changeUsernameReqController = async (req, res) => {
+    const { userId } = req.body;
+    try {
+        const result = await changeUsernameReqService(userId);
+        if (result.success) {
+            return res.status(200).json(result);
+        } else {
+            return res.status(400).json(result);
+        }
 
-export { getUserController, getUsersListController, updateUserController };
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message });
+    }
+};
+
+/* RESET USERNAME */
+const confirmChangeUsernameController = async (req, res) => {
+    const { userId, token } = req.query;
+    const newUsername = req.body.newUsername;
+
+    const paramData = { userId, token };
+    
+    try {
+        const result = await confirmChangeUsernameService(paramData, newUsername);
+        if (result.success) {
+            return res.status(200).json(result);
+        } else {
+            return res.status(400).json(result);
+        }
+        
+    } catch (error) {
+        console.error('Change username error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+};
+
+/* REQ DELETE USER */
+const deleteUserReqController = async (req, res) => {
+    const { userId } = req.body;
+    try {
+        const result = await deleteUserReqService(userId);
+        if (result.success) {
+            return res.status(200).json(result);
+        } else {
+            return res.status(400).json(result);
+        }
+
+    } catch (error) {
+        console.error('Delete User error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message });
+    }
+};
+
+/* DELETE USER */
+const confirmDeleteUserController = async (req, res) => {
+    const { userId, token } = req.query;
+    
+    try {
+        const result = await confirmDeleteUserService(userId, token);
+        if (result.success) {
+            return res.status(200).json(result);
+        } else {
+            return res.status(400).json(result);
+        }
+        
+    } catch (error) {
+        console.error('Delete user error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message 
+        });
+    }
+};
+
+export { 
+    getUserController, 
+    getUsersListController, 
+    updateUserController, 
+    changeUsernameReqController, 
+    confirmChangeUsernameController, 
+    deleteUserReqController, 
+    confirmDeleteUserController 
+};

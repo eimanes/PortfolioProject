@@ -21,19 +21,28 @@ const signUpService = async (userData) => {
     } = userData;
   
     // Check if username meets the requirements
-    if (!username || username.length < 3) {
-      return {
-        success: false,
-        error: "Username must be at least 3 characters",
-      };
+    const usernameRegex = /^[a-zA-Z0-9_]+$/; // Allows alphanumeric characters and underscore
+    if (!usernameRegex.test(username) || !username) {
+        return { 
+            success: false, 
+            error: "Username can only contain alphanumeric characters and underscore" 
+        };
+    }
+
+    if (username.length < 5) {
+        return { 
+            success: false, 
+            error: "Username must be at least 5 characters long" 
+        };
     }
   
     // Check if password meets the requirements
-    if (!password || password.length < 5 || !/\d/.test(password)) {
-      return {
-        success: false,
-        error: "Password must be at least 5 characters long and contain at least 1 number",
-      };
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+        return { 
+            success: false, 
+            error: "Password must be at least 8 characters long, contain at least 1 number, and contain at least 1 special character" 
+        };
     }
   
     // Check if passwords match
@@ -102,6 +111,7 @@ const signUpService = async (userData) => {
     const userVerification = new UserVerification({
       userId: savedUser.userId,
       uniqueString: verificationToken,
+      isRegister: true,
       createdAt: new Date(),
       expiresAt: new Date(Date.now() + 15 * 60 * 1000), // Token expires in 15 minutes
     });
@@ -151,15 +161,21 @@ const signUpService = async (userData) => {
 const verifyEmailService = async (userId, token) => {
     try {
         // Find the user verification entry in the database
-        const userVerification = await UserVerification.findOne({ userId, uniqueString: token });
+        const userVerification = await UserVerification.findOne({ userId, uniqueString: token, isRegister: true });
 
         if (!userVerification) {
-            return { success: false, error: "Verification token not found" };
+            return { 
+                success: false, 
+                error: "Verification token not found" 
+            };
         }
 
         // Check if the verification token has expired
         if (userVerification.expiresAt < Date.now()) {
-            return { success: false, error: "Verification token expired" };
+            return { 
+                success: false, 
+                error: "Verification token expired" 
+            };
         }
 
         // Update the user's verification status
@@ -168,9 +184,15 @@ const verifyEmailService = async (userId, token) => {
         // Delete the user verification entry from the database
         await UserVerification.findOneAndDelete(userVerification._id);
 
-        return { success: true, message: "Email verified successfully" };
+        return { 
+            success: true, 
+            message: "Email verified successfully" 
+        };
     } catch (error) {
-        return { success: false, error: error.message };
+        return { 
+            success: false, 
+            error: error.message 
+        };
     }
 };
 
@@ -205,6 +227,7 @@ const resendVerificationEmailService = async (email) => {
         { userId: user.userId },
         {
             uniqueString: verificationToken,
+            isRegister: true,
             expiresAt: new Date(Date.now() + 15 * 60 * 1000) // Token expires in 15 minutes
         },
         { upsert: true }
@@ -247,8 +270,6 @@ const resendVerificationEmailService = async (email) => {
             }
         });
     });
-    
-
 };
 
 
@@ -319,14 +340,13 @@ const forgotPasswordService = async (email) => {
     // Generate a reset token using uuidv4
     const verificationToken = uuidv4();
 
-    // Update the verification token and its expiration in the user document
     await UserVerification.findOneAndUpdate(
-        { userId: user.userId },
+        { userId, isPassword: true },
         {
             uniqueString: verificationToken,
-            expiresAt: new Date(Date.now() + 15 * 60 * 1000) // Token expires in 15 minutes
+            expiresAt: new Date(Date.now() + 15 * 60 * 1000) 
         },
-        { upsert: true }
+        { upsert: true, new: true } 
     );
 
 
@@ -387,12 +407,11 @@ const resetPasswordService = async (paramData, passwordData) => {
         };
     }
 
-
-    // Check if the new password meets the requirements
-    if (newPassword.length < 5 || !/\d/.test(newPassword)) {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
         return { 
             success: false, 
-            error: "Password must be at least 5 characters long and contain at least 1 number" 
+            error: "Password must be at least 8 characters long, contain at least 1 number, and contain at least 1 special character" 
         };
     }
 
@@ -405,146 +424,7 @@ const resetPasswordService = async (paramData, passwordData) => {
     }
 
     // Find the user by the reset token
-    const userVerification = await UserVerification.findOne({ userId, uniqueString: token });
-
-    if (!userVerification) {
-        return {
-            success: false,
-            error: "Verification token not found"
-        };
-    }
-
-    // Check if the verification token has expired
-    if (userVerification.expiresAt < Date.now()) {
-        return { 
-            success: false, 
-            error: "Verification token expired" 
-        };
-    }
-
-    // Find the user by user ID
-    const user = await User.findById(userId);
-
-    if (!user) {
-        return { 
-            success: false, 
-            error: "User not found" };
-    }
-
-    // Encrypt the new password
-    const salt = await bcrypt.genSalt();
-    const passwordHash = await bcrypt.hash(newPassword, salt);
-
-    // Update the user's password and remove the reset token
-    user.password = passwordHash;
-    await user.save();
-
-    // Respond with success message
-    return { 
-        success: true, 
-        message: "Password reset successfully" 
-    };
-};
-
-/* CHANGE USERNAME REQUEST */
-const changeUsernameReqService = async (email) => {
-
-    if (!email || email.trim() === '') {
-        return res.status(400).json({ success: false, error: "Email is required" });
-    }
-
-    // Find the user by email
-    const user = await User.findOne({ email: email });
-
-    // If user doesn't exist, return error message
-    if (!user) {
-        return res.status(400).json({
-            success: false,
-            error: "User not found" });
-    }
-
-    // Generate a reset token using uuidv4
-    const verificationToken = uuidv4();
-
-    // Update the verification token and its expiration in the user document
-    await UserVerification.findOneAndUpdate(
-        { userId: user.userId },
-        {
-            uniqueString: verificationToken,
-            expiresAt: new Date(Date.now() + 15 * 60 * 1000) // Token expires in 15 minutes
-        },
-        { upsert: true }
-    );
-
-
-    // Send an email with the reset token
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USERNAME,
-            pass: process.env.EMAIL_PASSWORD,
-        }
-    });
-
-    const mailOptions = {
-        from: process.env.EMAIL_USERNAME,
-        to: email,
-        subject: 'Username Reset',
-        html: `<h1>UPDATE FROM FRONT END</h1><br><p>Copy <a>${verificationToken} here</a> to reset your password.</p>`
-    };
-
-    return new Promise((resolve, reject) => {
-        // Send the verification email
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.error('Error sending username reset email:', error);
-                reject ({ 
-                    success: false, 
-                    error: 'Failed to send username reset email' 
-                });
-            } else {
-                console.log('Username reset email sent:', info.response);
-                resolve ({
-                    success: true,
-                    message: "Username reset email sent"
-                });
-            }
-        });
-    });
-
-};
-
-/* RESET Username */
-const resetUsernameService = async (paramData, newUsername) => {
-    const { userId, token } = paramData;
-
-    // Check if reset token, new password, or confirm new password is missing or empty
-    if (!userId || !token) {
-        return {
-            success: false,
-            error: "Reset token and UserId are required"
-        };
-    }
-
-    if ( !newUsername || newUsername.trim() === '' ) {
-        return {
-            success: false,
-            error: "New username are required"
-        };
-    }
-
-
-    // Check if the new username meets the requirements
-    if (newUsername.length < 3) {
-        return { 
-            success: false, 
-            error: "Username must be at least 3 characters long" 
-        };
-    }
-
-
-    // Find the user by the reset token
-    const userVerification = await UserVerification.findOne({ userId, uniqueString: token });
+    const userVerification = await UserVerification.findOne({ userId, uniqueString: token, isPassword: true });
 
     if (!userVerification) {
         return {
@@ -570,15 +450,23 @@ const resetUsernameService = async (paramData, newUsername) => {
             error: "User not found" };
     }
 
-    user.username = newUsername;
+    // Encrypt the new password
+    const salt = await bcrypt.genSalt();
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+
+    // Update the user's password and remove the reset token
+    user.password = passwordHash;
     await user.save();
+    await UserVerification.findOneAndDelete(userVerification._id);
 
     // Respond with success message
     return { 
         success: true, 
-        message: "Username reset successfully" 
+        message: "Password reset successfully" 
     };
 };
 
-export { signUpService, verifyEmailService, resendVerificationEmailService, signInService, forgotPasswordService, resetPasswordService, changeUsernameReqService, resetUsernameService };
+
+
+export { signUpService, verifyEmailService, resendVerificationEmailService, signInService, forgotPasswordService, resetPasswordService };
 

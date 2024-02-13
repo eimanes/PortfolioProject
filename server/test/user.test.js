@@ -241,10 +241,12 @@ describe('User Service', () => {
   });
 
   describe('changeUsernameReqService', async () => {
-    it('should return sending email successfull with correct userId', async () => {
+    it('should return sending email successful with correct userId', async () => {
       try {
-        const userId = '456e7890-f12g-3h4i-5j6k-7l8m9n0o1p';
-        const result = await changeUsernameReqService(userId);
+        const userId1 = '456e7890-f12g-3h4i-5j6k-7l8m9n0o1p';
+        const userId2 = '123e4567-e89b-12d3-a456-426655440000';
+        const result = await changeUsernameReqService(userId1);
+        await changeUsernameReqService(userId2);
         expect(result).to.deep.equal({
           success: true,
           message: "Username reset email sent"
@@ -274,7 +276,160 @@ describe('User Service', () => {
         });
       }
     });
+  });
 
+  describe('confirmChangeUsernameService', async () => {
+    it('should return success if change username meets requirements ', async () => {
+      const userId = '456e7890-f12g-3h4i-5j6k-7l8m9n0o1p';
+      const userVertification = await UserVerification.findOne({ userId, isUsername: true });
+      const token = userVertification.uniqueString;
+      const paramData = { userId, token };
+      try {
+        const username = 'username';
+        const result = await confirmChangeUsernameService(paramData, username);
+        expect(result).to.deep.equal({
+          success: true, 
+          message: "Username reset successfully" 
+        })
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    });
+
+    it('should return user not found when userId does not exist', async () => {
+      const nonExistingUserId = '2665544-e89b-12d3-a456-123e45670000';
+      const token = 'mockToken';
+      const username = 'username';
     
-  })
+      const paramData = { userId: nonExistingUserId, token };
+      try {
+        const result = await confirmChangeUsernameService(paramData, username);
+        expect(result.success).to.equal(false);
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    });
+
+    it('should return user not found when token does not exist', async () => {
+      const userId = '123e4567-e89b-12d3-a456-426655440000';
+      const userVertification = await UserVerification.findOne({ userId, isUsername: true });
+      const token = 'mockToken';
+      const paramData = { userId, token };
+      try {
+        const username = 'username';
+        const result = await confirmChangeUsernameService(paramData, username);
+        expect(result.success).to.equal(false);
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    });
+
+    it('should return error if change username does not meet requirements', async () => {
+      const userId = '123e4567-e89b-12d3-a456-426655440000';
+      const userVertification = await UserVerification.findOne({ userId, isUsername: true });
+      const token = userVertification.uniqueString;
+      const paramData = { userId, token };
+      try {
+        const username = 'a b c@';
+        const result = await confirmChangeUsernameService(paramData, username);
+        expect(result.success).to.equal(false);
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    });
+
+    it('should return error if username field is empty', async () => {
+      const userId = '123e4567-e89b-12d3-a456-426655440000';
+      const userVertification = await UserVerification.findOne({ userId, isUsername: true });
+      const token = userVertification.uniqueString;
+      const paramData = { userId, token };
+      try {
+        const username = null;
+        const result = await confirmChangeUsernameService(paramData, username);
+        expect(result.success).to.equal(false);
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    });
+  });
+
+  describe('deleteUserReqService', async () => {
+    it('should return sending email successfull with correct userId', async () => {
+      try {
+        const userId1 = '456e7890-f12g-3h4i-5j6k-7l8m9n0o1p';
+        const userId2 = '123e4567-e89b-12d3-a456-426655440000';
+        const result = await deleteUserReqService(userId1);
+        await deleteUserReqService(userId2);
+        expect(result).to.deep.equal({
+          success: true,
+          message: "Delete user email sent"
+        });
+      } catch (error) {
+        expect(result).to.deep.equal({
+          success: false, 
+          error: 'Failed to send delete user email' 
+        });
+      }
+    });
+    
+    it('should return user not found with non existing userId', async () => {
+      try {
+        const noexisting_userId = '42665544-e89b-12d3-a456-123e45670000';
+        const result = await deleteUserReqService(noexisting_userId);
+        expect(result).to.deep.equal({
+          status: 404,
+          success: false,
+          error: "User not found" 
+        });
+      } catch (error) {
+        expect(error).to.deep.equal({
+          status: 404,
+          success: false,
+          error: "User not found" 
+        });
+      }
+    });
+  });
+
+  describe('confirmDeleteUser', async () => {
+    it('should return success if delete user meets requirements ', async () => {
+      const userId = '456e7890-f12g-3h4i-5j6k-7l8m9n0o1p';
+      const userVertification = await UserVerification.findOne({ userId, isDeleteUser: true });
+      const token = userVertification.uniqueString;
+      try {
+        const result = await confirmDeleteUserService(userId, token);
+        expect(result).to.deep.equal({
+          success: true, 
+        message: "User deleted successfully" 
+        })
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    });
+
+    it('should return user not found when userId does not exist', async () => {
+      const nonExistingUserId = '2665544-e89b-12d3-a456-123e45670000';
+      const token = 'mockToken';
+      const username = 'username';
+      try {
+        const result = await confirmDeleteUserService(nonExistingUserId, token);
+        expect(result.success).to.equal(false);
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    });
+
+    it('should return user not found when token does not exist', async () => {
+      const userId = '123e4567-e89b-12d3-a456-426655440000';
+      const userVertification = await UserVerification.findOne({ userId, isDeleteUser: true });
+      const token = 'mockToken';
+      try {
+        const username = 'username';
+        const result = await confirmDeleteUserService(userId, token);
+        expect(result.success).to.equal(false);
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    });
+  });
 });

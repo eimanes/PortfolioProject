@@ -214,8 +214,16 @@ const resendVerificationEmailService = async (email) => {
     // If user not found, return an error
     if (!user) {
         return {
+            status: 404,
             success: false,
             error: "User not found"
+        };
+    }
+
+    if (user.verified) {
+        return {
+            success: false,
+            error: "User has been verified"
         };
     }
 
@@ -323,8 +331,11 @@ const signInService = async (username, password) => {
 /* FORGOT PASSWORD */
 const forgotPasswordService = async (email) => {
 
-    if (!email || email.trim() === '') {
-        return res.status(400).json({ success: false, error: "Email is required" });
+    if (!email || email.trim() === '' || !email.includes('@')) {
+        return {
+            success: false,
+            error: "Email is required and must be valid"
+        };
     }
 
     // Find the user by email
@@ -332,9 +343,10 @@ const forgotPasswordService = async (email) => {
 
     // If user doesn't exist, return error message
     if (!user) {
-        return res.status(400).json({
+        return {
             success: false,
-            error: "User not found" });
+            error: "User not found" 
+        };
     }
 
     // Generate a reset token using uuidv4

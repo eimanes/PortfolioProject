@@ -41,15 +41,29 @@ const getUsersListService = async (skip, limit, name, occupation, location) => {
             { lastName: { $regex: name, $options: 'i' } },
             { username: { $regex: name, $options: 'i' } }
         ];
+        if (occupation) {
+            filter.occupation = { $regex: occupation, $options: 'i' };
+            if (location) {
+                filter.location = { $regex: location, $options: 'i' };
+            }
+        }
+
+        if (location) {
+            filter.location = { $regex: location, $options: 'i' };
+        }
     }
 
     if (occupation) {
         filter.occupation = { $regex: occupation, $options: 'i' };
+        if (location) {
+            filter.location = { $regex: location, $options: 'i' };
+        }
     }
 
     if (location) {
         filter.location = { $regex: location, $options: 'i' };
     }
+    
 
     const users = await User.find(filter).skip(skip).limit(limit);
     return users;
@@ -117,10 +131,11 @@ const changeUsernameReqService = async (userId) => {
 
     // If user doesn't exist, return error message
     if (!user) {
-        return res.status(400).json({
+        return {
+            status: 404,
             success: false,
             error: "User not found" 
-        });
+        };
     }
 
     const email = user.email;
@@ -128,7 +143,7 @@ const changeUsernameReqService = async (userId) => {
     // Generate a reset token using uuidv4
     const verificationToken = uuidv4();
 
-    await UserVerification.findOneAndUpdate(
+    const userVertification = await UserVerification.findOneAndUpdate(
         { userId, isUsername: true },
         {
             uniqueString: verificationToken,
@@ -136,6 +151,13 @@ const changeUsernameReqService = async (userId) => {
         },
         { upsert: true, new: true } 
     );
+    if (!userVertification) {
+        return {
+            status: 404,
+            success: false,
+            error: "User vertification not found" 
+        };
+    }
 
 
     // Send an email with the reset token
@@ -178,18 +200,11 @@ const changeUsernameReqService = async (userId) => {
 const confirmChangeUsernameService = async (paramData, username) => {
     const { userId, token } = paramData;
 
-    // Check if reset token, new password, or confirm new password is missing or empty
-    if (!userId || !token) {
+    // Check if reset token, new username, or user ID is missing or empty
+    if (!userId || !token || !username) {
         return {
             success: false,
-            error: "Reset token and UserId are required"
-        };
-    }
-
-    if (!username || username.length === 0) {
-        return {
-            success: false,
-            error: "New username are required"
+            error: "Reset token, UserId, and new username are required"
         };
     }
 
@@ -209,7 +224,7 @@ const confirmChangeUsernameService = async (paramData, username) => {
         };
     }
 
-    // Find the user by the reset token
+    // Find the user verification data by the user ID and reset token
     const userVerification = await UserVerification.findOne({ userId, uniqueString: token , isUsername: true });
 
     if (!userVerification) {
@@ -228,7 +243,7 @@ const confirmChangeUsernameService = async (paramData, username) => {
     }
 
     // Find the user by user ID
-    const user = await User.findOne({userId});
+    const user = await User.findOne({ userId });
 
     if (!user) {
         return { 
@@ -237,6 +252,7 @@ const confirmChangeUsernameService = async (paramData, username) => {
         };
     }
 
+    // Update the user's username and delete the user verification data
     user.username = username;
     await user.save();
     await UserVerification.findOneAndDelete(userVerification._id);
@@ -264,8 +280,10 @@ const deleteUserReqService = async (userId) => {
     // If user doesn't exist, return error message
     if (!user) {
         return {
+            status: 404,
             success: false,
-            error: "User not found" };
+            error: "User not found" 
+        };
     }
 
     const email = user.email;
@@ -273,7 +291,7 @@ const deleteUserReqService = async (userId) => {
     // Generate a reset token using uuidv4
     const verificationToken = uuidv4();
 
-    await UserVerification.findOneAndUpdate(
+    const userVerification = await UserVerification.findOneAndUpdate(
         { userId, isDeleteUser: true },
         {
             uniqueString: verificationToken,
@@ -281,6 +299,13 @@ const deleteUserReqService = async (userId) => {
         },
         { upsert: true, new: true } 
     );
+    if (!userVerification) {
+        return {
+            status: 404,
+            success: false,
+            error: "User vertification not found" 
+        };
+    }
 
 
     // Send an email with the reset token
@@ -306,7 +331,7 @@ const deleteUserReqService = async (userId) => {
                 console.error('Error sending delete user email:', error);
                 reject ({ 
                     success: false, 
-                    error: 'Failed to send udelete user email' 
+                    error: 'Failed to send delete user email' 
                 });
             } else {
                 console.log('Delete user email sent:', info.response);

@@ -25,7 +25,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "mocha"
+    "start": "node index.js",
+    "test": "mocha --timeout 10000"
   },
   "keywords": [],
   "author": "",

@@ -67,7 +67,10 @@ const changeUsernameReqController = async (req, res) => {
         const result = await changeUsernameReqService(userId);
         if (result.success) {
             return res.status(200).json(result);
-        } else {
+        } else if (!result.success && result.status === 404) {
+            return res.status(404).json(result);
+        }
+        else {
             return res.status(400).json(result);
         }
 
@@ -110,7 +113,10 @@ const deleteUserReqController = async (req, res) => {
         const result = await deleteUserReqService(userId);
         if (result.success) {
             return res.status(200).json(result);
-        } else {
+        } else if (!result.success && result.status === 404) {
+            return res.status(404).json(result);
+        }
+        else {
             return res.status(400).json(result);
         }
 

@@ -41,15 +41,29 @@ const getUsersListService = async (skip, limit, name, occupation, location) => {
             { lastName: { $regex: name, $options: 'i' } },
             { username: { $regex: name, $options: 'i' } }
         ];
+        if (occupation) {
+            filter.occupation = { $regex: occupation, $options: 'i' };
+            if (location) {
+                filter.location = { $regex: location, $options: 'i' };
+            }
+        }
+
+        if (location) {
+            filter.location = { $regex: location, $options: 'i' };
+        }
     }
 
     if (occupation) {
         filter.occupation = { $regex: occupation, $options: 'i' };
+        if (location) {
+            filter.location = { $regex: location, $options: 'i' };
+        }
     }
 
     if (location) {
         filter.location = { $regex: location, $options: 'i' };
     }
+    
 
     const users = await User.find(filter).skip(skip).limit(limit);
     return users;
@@ -117,10 +131,11 @@ const changeUsernameReqService = async (userId) => {
 
     // If user doesn't exist, return error message
     if (!user) {
-        return res.status(400).json({
+        return {
+            status: 404,
             success: false,
             error: "User not found" 
-        });
+        };
     }
 
     const email = user.email;

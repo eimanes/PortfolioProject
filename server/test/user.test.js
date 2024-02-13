@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import sinon from 'sinon';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import User from '../models/User.js';
@@ -20,7 +19,7 @@ dotenv.config();
 describe('User Service', () => {
   before(async () => {
     try {
-      await mongoose.connect(process.env.MONGO_URL, {
+      await mongoose.connect(process.env.MONGO_TEST_URL, {
         useNewUrlParser: true,
         useUnifiedTopology: true
       });
@@ -252,10 +251,7 @@ describe('User Service', () => {
           message: "Username reset email sent"
         });
       } catch (error) {
-        expect(result).to.deep.equal({
-          success: false, 
-          error: 'Failed to send username reset email' 
-        });
+        throw new Error(error.message);
       }
     });
     
@@ -269,11 +265,7 @@ describe('User Service', () => {
           error: "User not found" 
         });
       } catch (error) {
-        expect(error).to.deep.equal({
-          status: 404,
-          success: false,
-          error: "User not found" 
-        });
+        throw new Error(error.message);
       }
     });
   });

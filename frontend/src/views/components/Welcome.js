@@ -2,7 +2,7 @@ import React from 'react';
 const Welcome = () => {
     return (
         <div>
-            <h1 className='text-5xl text-blue-800 mb-20'>Welcome to AE Software</h1>
+            <h1 className='text-5xl text-blue-800 mb-20'>Welcome to Perisian AE</h1>
             
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc.
 
@@ -13,7 +13,6 @@ const Welcome = () => {
                 Vestibulum sapien. Proin quam. Etiam ultrices. Suspendisse in justo eu magna luctus suscipit. Sed lectus. Integer euismod lacus luctus magna. Quisque cursus, metus vitae pharetra auctor, sem massa mattis sem, at interdum magna augue eget diam. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Morbi lacinia molestie dui.
             </p>
         </div>
-       
     )
   }
 

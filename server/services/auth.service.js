@@ -8,8 +8,25 @@ import UserVerification from '../models/UserVerification.js';
 
 dotenv.config();
 
+/* DElETE UNVERIFIED USER */
+const deleteUnverifiedUsers = async () => {
+    const expiredUsers = await UserVerification.find({
+        isRegister: true,
+        expiresAt: { $lt: new Date() } // Find tokens that have expired
+    });
+
+    // Delete unverified users' data
+    for (const user of expiredUsers) {
+        await User.deleteOne({ userId: user.userId });
+        await UserVerification.deleteOne({ userId: user.userId });
+        console.log(`Deleted data for unverified user with userId: ${user.userId}`);
+    }
+};
+
 /* REGISTER USER */
 const signUpService = async (userData) => {
+
+    await deleteUnverifiedUsers();
     
     const {
       username,

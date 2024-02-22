@@ -436,7 +436,7 @@ describe('Auth Service', () => {
     });
     
     describe('forgotPasswordService', async () => {
-        it.skip('should return sending email successful with correct email', async () => {
+        it('should return sending email successful with correct email', async () => {
           try {
             const email1 = 'test1@email.com';
             const email2 = 'test2@email.com';
@@ -478,7 +478,7 @@ describe('Auth Service', () => {
       });
     
       describe('resetPasswordService', async () => {
-        it.skip('should return success if reset password meets requirements ', async () => {
+        it('should return success if reset password meets requirements ', async () => {
           const userId = '456e7890-f12g-3h4i-5j6k-7l8m9n0o1p';
           const userVertification = await UserVerification.findOne({ userId, isPassword: true });
           const token = userVertification.uniqueString;

@@ -319,11 +319,13 @@ const signInService = async (username, password) => {
     }
 
     const token = jwt.sign({ id: user.userId}, process.env.JWT_SECRET);
+    const time = new Date();
     delete user.password;
     return {
         success: true,
         token,
-        user
+        loginAt: time,
+        user,
     };
 };
 
@@ -353,7 +355,7 @@ const forgotPasswordService = async (email) => {
     const verificationToken = uuidv4();
 
     await UserVerification.findOneAndUpdate(
-        { userId, isPassword: true },
+        { userId: user.userId, isPassword: true },
         {
             uniqueString: verificationToken,
             expiresAt: new Date(Date.now() + 15 * 60 * 1000) 

@@ -15,7 +15,7 @@ const updateData = () => {
 }
 
 const connectData = () => {
-    return sock.FetchSocket();
+    return sock.WebSocketComponent();
 }
 
 

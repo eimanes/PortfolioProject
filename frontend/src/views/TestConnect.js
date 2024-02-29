@@ -53,7 +53,7 @@ const WebSocketComponent = () => {
           // Set the socket state
           setSocket(newSocket);
         });
-    
+
         // ... rest of the code
       } catch (error) {
         console.error('Error setting up WebSocket:', error);
@@ -77,7 +77,7 @@ const WebSocketComponent = () => {
       ...prevData,
       [id]: value,
     }));
-  };      
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -85,16 +85,15 @@ const WebSocketComponent = () => {
 
       alert('Please Sign In');
     }else{
-      
+
       try {
         socket.send( formData.send);
-  
+
         } catch (error) {
           console.error('Error during send:', error);
         }
     }
-
-    }
+  }
 
   return (
     <div>
@@ -107,7 +106,7 @@ const WebSocketComponent = () => {
       <div>
           <div className='pt-10'>
               <form onSubmit={handleSubmit}>
-                  
+
                   <div>
                       <label htmlFor='send' className='text-xl text-blue-800'>Message:</label><br />
                       <input id='send' type='text' placeholder='Enter your message' value={formData.send} onChange={handleChange}></input>
@@ -122,8 +121,5 @@ const WebSocketComponent = () => {
     </div>
   );
 };
-
-
-
 
 export default  ViewConnect ;

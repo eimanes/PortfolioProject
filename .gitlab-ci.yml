@@ -12,7 +12,7 @@ variables:
 copy_server:
   stage: mirror
   variables:
-    URL: "https://${ES_NAME}@github.com/${ES_NAME}/server-only.git"
+    URL: "https://${ES_NAME}:${ES_TOKEN}@github.com/${ES_NAME}/server-only.git"
     GitLab_REPO_URL: https://gitlab.com/freelance-adil-eiman/portfolio-project.git
   script:
     - git config user.email "${ES_EMAIL}"

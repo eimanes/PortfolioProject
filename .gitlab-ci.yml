@@ -5,7 +5,7 @@ stages:
 copy_all:
   stage: mirror
   variables:
-    URL: "https://${ES_NAME}:${ES_TOKEN}${REPO_ALL}"
+    URL: "https://oauth2:${ES_TOKEN}${REPO_ALL}"
   script:
     - git config user.email "${ES_EMAIL}"
     - git config user.name "${ES_NAME}"
@@ -18,7 +18,7 @@ copy_all:
 copy_server:
   stage: mirror
   variables:
-    URL: "https://${ES_NAME}:${ES_TOKEN}${SERVER_REPO}"
+    URL: "https://oauth2:${ES_TOKEN}${SERVER_REPO}"
   script:
     - git config user.email "${ES_EMAIL}"
     - git config user.name "${ES_NAME}"

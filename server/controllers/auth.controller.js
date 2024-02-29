@@ -13,7 +13,7 @@ const signUpController = async (req, res, next) => {
       password,
       confirmPassword,
     } = req.body;
-  
+
     const userData = {
       username,
       firstName,
@@ -22,23 +22,23 @@ const signUpController = async (req, res, next) => {
       password,
       confirmPassword,
     };
-  
+
     try {
         const result = await signUpService(userData);
-    
+
         if (result.success === true) {
             return res.status(200).json(result);
         } else {
             return res.status(400).json(result);
         }
-        
-    } catch (error) { 
-        console.error("Error in registerController:", error); 
-        return res.status(500).json({ 
-            success: false, 
-            error: error.message 
-        }); 
-    } 
+
+    } catch (error) {
+        console.error("Error in registerController:", error);
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
 };
 
 /* EMAIL VERIFICATION USER */
@@ -72,9 +72,9 @@ const resendVerificationEmailController = async (req, res) => {
     }
 
     } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
     }
 };
@@ -82,9 +82,9 @@ const resendVerificationEmailController = async (req, res) => {
 
 /* LOGIN USER */
 const signInController = async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, rememberMe } = req.body;
     try {
-        const result = await signInService(username, password);
+        const result = await signInService(username, password, rememberMe);
         if (result.success) {
             return res.status(200).json(result);
         } else {
@@ -92,9 +92,9 @@ const signInController = async (req, res) => {
         }
 
     } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
     }
 };
@@ -114,8 +114,8 @@ const forgotPasswordController = async (req, res) => {
     } catch (error) {
         // If any error occurs, return internal server error
         console.error('Forgot password error:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             error: error.message });
     }
 };
@@ -134,12 +134,12 @@ const resetPasswordController = async (req, res) => {
         } else {
             return res.status(400).json(result);
         }
-        
+
     } catch (error) {
         console.error('Reset password error:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
     }
 };

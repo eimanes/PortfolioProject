@@ -23,11 +23,18 @@ const deleteUnverifiedUsers = async () => {
     }
 };
 
+/* RANDOM TOKEN */
+const generateRandomToken = (length = 10) => (
+    crypto.randomBytes(Math.ceil(length / 2))
+        .toString('hex')
+        .slice(0, length)
+);
+
 /* REGISTER USER */
 const signUpService = async (userData) => {
 
     await deleteUnverifiedUsers();
-    
+
     const {
       username,
       password,
@@ -36,32 +43,32 @@ const signUpService = async (userData) => {
       firstName,
       lastName,
     } = userData;
-  
+
     // Check if username meets the requirements
     const usernameRegex = /^[a-zA-Z0-9_]+$/; // Allows alphanumeric characters and underscore
     if (!usernameRegex.test(username) || !username) {
-        return { 
-            success: false, 
-            error: "Username can only contain alphanumeric characters and underscore" 
+        return {
+            success: false,
+            error: "Username can only contain alphanumeric characters and underscore"
         };
     }
 
     if (username.length < 5) {
-        return { 
-            success: false, 
-            error: "Username must be at least 5 characters long" 
+        return {
+            success: false,
+            error: "Username must be at least 5 characters long"
         };
     }
-  
+
     // Check if password meets the requirements
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(password)) {
-        return { 
-            success: false, 
-            error: "Password must be at least 8 characters long, contain at least 1 number, and contain at least 1 special character" 
+        return {
+            success: false,
+            error: "Password must be at least 8 characters long, contain at least 1 number, and contain at least 1 special character"
         };
     }
-  
+
     // Check if passwords match
     if (password !== confirmPassword) {
       return {
@@ -69,7 +76,7 @@ const signUpService = async (userData) => {
         error: "Passwords do not match",
       };
     }
-  
+
     // Check if email is missing, empty, or invalid
     if (!email || email.trim() === "" || !email.includes("@")) {
       return {
@@ -77,7 +84,7 @@ const signUpService = async (userData) => {
         error: "Email is required and must be valid",
       };
     }
-  
+
     // Check if username already exists
     const existingUser = await User.findOne({ username });
     if (existingUser) {
@@ -86,7 +93,7 @@ const signUpService = async (userData) => {
         error: "Username is already taken",
       };
     }
-  
+
     // Check if email is already taken
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {
@@ -95,17 +102,17 @@ const signUpService = async (userData) => {
         error: "Email is already taken",
       };
     }
-  
+
     // Generate a userId using uuidv4
     const userId = uuidv4();
-  
+
     // Hash the password
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
-  
+
     // Generate Email verification token using uuidv4
-    const verificationToken = uuidv4();
-  
+    const verificationToken = generateRandomToken();
+
     const newUser = new User({
       userId,
       username,
@@ -120,10 +127,10 @@ const signUpService = async (userData) => {
       impression: Math.floor(Math.random() * 10000),
       verified: false,
     });
-  
+
     // Save the user
     const savedUser = await newUser.save();
-  
+
     // Save the user verification token to the database
     const userVerification = new UserVerification({
       userId: savedUser.userId,
@@ -134,11 +141,11 @@ const signUpService = async (userData) => {
     });
     await userVerification.save();
 
-    const mailOptions = { 
-        from: process.env.EMAIL_USERNAME, 
-        to: email, 
-        subject: "Account Verification", 
-        html: `<p>Click <a href="http://localhost:3001/auth/verify-email?userId=${userVerification.userId}&token=${userVerification.uniqueString}">here</a> to verify your email.</p>`, 
+    const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: email,
+        subject: "Account Verification",
+        html: `<p>Click <a href="http://localhost:3001/auth/verify-email?userId=${userVerification.userId}&token=${userVerification.uniqueString}">here</a> to verify your email.</p>`,
     };
 
     // Send verification email
@@ -147,32 +154,32 @@ const signUpService = async (userData) => {
         host: "smtp.gmail.com",
         port: 587,
         auth: {
-            user: process.env.EMAIL_USERNAME, 
-            pass: process.env.EMAIL_PASSWORD, 
-        }, 
-        debug: true, 
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD,
+        },
+        debug: true,
     });
-    
+
     return new Promise((resolve, reject) => {
-        transporter.sendMail(mailOptions, (error, info) => { 
-            if (error) { 
-                console.error("Error sending verification email:", error); 
-                reject({ 
-                    success: false, 
-                    error: "Failed to send verification email" 
-                }); 
-            } else { 
-                console.log("Verification email sent:", info.response); 
-                resolve({ 
-                    success: true, 
-                    message: "Signup successful. Please verify your email", 
-                    data: savedUser, 
-                }); 
-            } 
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error("Error sending verification email:", error);
+                reject({
+                    success: false,
+                    error: "Failed to send verification email"
+                });
+            } else {
+                console.log("Verification email sent:", info.response);
+                resolve({
+                    success: true,
+                    message: "Signup successful. Please verify your email",
+                    data: savedUser,
+                });
+            }
         });
     });
 };
-  
+
 
 /* EMAIL VERIFICATION USER */
 const verifyEmailService = async (userId, token) => {
@@ -181,17 +188,17 @@ const verifyEmailService = async (userId, token) => {
         const userVerification = await UserVerification.findOne({ userId, uniqueString: token, isRegister: true });
 
         if (!userVerification) {
-            return { 
-                success: false, 
-                error: "Verification token not found" 
+            return {
+                success: false,
+                error: "Verification token not found"
             };
         }
 
         // Check if the verification token has expired
         if (userVerification.expiresAt < Date.now()) {
-            return { 
-                success: false, 
-                error: "Verification token expired" 
+            return {
+                success: false,
+                error: "Verification token expired"
             };
         }
 
@@ -201,14 +208,14 @@ const verifyEmailService = async (userId, token) => {
         // Delete the user verification entry from the database
         await UserVerification.findOneAndDelete(userVerification._id);
 
-        return { 
-            success: true, 
-            message: "Email verified successfully" 
+        return {
+            success: true,
+            message: "Email verified successfully"
         };
     } catch (error) {
-        return { 
-            success: false, 
-            error: error.message 
+        return {
+            success: false,
+            error: error.message
         };
     }
 };
@@ -245,7 +252,7 @@ const resendVerificationEmailService = async (email) => {
     }
 
     // Generate a new verification token
-    const verificationToken = uuidv4();
+    const verificationToken = generateRandomToken();
 
     // Update the verification token and its expiration in the database
     await UserVerification.findOneAndUpdate(
@@ -282,9 +289,9 @@ const resendVerificationEmailService = async (email) => {
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
                 console.error('Error sending verification email:', error);
-                reject ({ 
-                    success: false, 
-                    error: 'Failed to send verification email' 
+                reject ({
+                    success: false,
+                    error: 'Failed to send verification email'
                 });
             } else {
                 console.log('Verification email sent:', info.response);
@@ -299,8 +306,8 @@ const resendVerificationEmailService = async (email) => {
 
 
 /* LOGIN USER */
-const signInService = async (username, password) => {
-    
+const signInService = async (username, password, rememberMe = false) => {
+
     let user;
     // Check if the username is a valid email format
     const isEmailFormat = /\S+@\S+\.\S+/.test(username);
@@ -314,34 +321,40 @@ const signInService = async (username, password) => {
     }
 
     if (!user) {
-        return { 
-            success: false, 
-            error: "User not found" 
+        return {
+            success: false,
+            error: "User not found"
         };
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-        return { 
+        return {
             success: false,
-            error: "Invalid Password!" 
+            error: "Invalid Password!"
         };
     }
 
     if (user.verified === false) {
-        return { 
-            success: false, 
-            error: "User has not verified" 
+        return {
+            success: false,
+            error: "User has not verified"
         };
     }
 
-    const token = jwt.sign({ id: user.userId}, process.env.JWT_SECRET);
+    const fifteenDays = 15 * 24 * 60 * 60 * 1000;
+    const oneHour = 60 * 60 * 1000;
+    const expirationTime = rememberMe ? fifteenDays : oneHour;
+    const token = jwt.sign({ id: user.userId }, process.env.JWT_SECRET, { expiresIn: expirationTime });
     const time = new Date();
+    const expirationDate = new Date(time.getTime() + expirationTime);
     delete user.password;
     return {
         success: true,
         token,
         loginAt: time,
+        RememberMe,
+        expirationDate,
         user,
     };
 };
@@ -364,20 +377,20 @@ const forgotPasswordService = async (email) => {
     if (!user) {
         return {
             success: false,
-            error: "User not found" 
+            error: "User not found"
         };
     }
 
     // Generate a reset token using uuidv4
-    const verificationToken = uuidv4();
+    const verificationToken = generateRandomToken();
 
     await UserVerification.findOneAndUpdate(
         { userId: user.userId, isPassword: true },
         {
             uniqueString: verificationToken,
-            expiresAt: new Date(Date.now() + 15 * 60 * 1000) 
+            expiresAt: new Date(Date.now() + 15 * 60 * 1000)
         },
-        { upsert: true, new: true } 
+        { upsert: true, new: true }
     );
 
 
@@ -402,9 +415,9 @@ const forgotPasswordService = async (email) => {
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
                 console.error('Error sending password reset email:', error);
-                reject ({ 
-                    success: false, 
-                    error: 'Failed to send password reset email' 
+                reject ({
+                    success: false,
+                    error: 'Failed to send password reset email'
                 });
             } else {
                 console.log('Password reset email sent:', info.response);
@@ -440,17 +453,17 @@ const resetPasswordService = async (paramData, passwordData) => {
 
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(newPassword)) {
-        return { 
-            success: false, 
-            error: "Password must be at least 8 characters long, contain at least 1 number, and contain at least 1 special character" 
+        return {
+            success: false,
+            error: "Password must be at least 8 characters long, contain at least 1 number, and contain at least 1 special character"
         };
     }
 
     // Check if the new password matches the confirm new password
     if (newPassword !== confirmNewPassword) {
-        return { 
-            success: false, 
-            error: "Passwords do not match" 
+        return {
+            success: false,
+            error: "Passwords do not match"
         };
     }
 
@@ -466,9 +479,9 @@ const resetPasswordService = async (paramData, passwordData) => {
 
     // Check if the verification token has expired
     if (userVerification.expiresAt < Date.now()) {
-        return { 
-            success: false, 
-            error: "Verification token expired" 
+        return {
+            success: false,
+            error: "Verification token expired"
         };
     }
 
@@ -476,8 +489,8 @@ const resetPasswordService = async (paramData, passwordData) => {
     const user = await User.findOne({userId});
 
     if (!user) {
-        return { 
-            success: false, 
+        return {
+            success: false,
             error: "User not found" };
     }
 
@@ -491,9 +504,9 @@ const resetPasswordService = async (paramData, passwordData) => {
     await UserVerification.findOneAndDelete(userVerification._id);
 
     // Respond with success message
-    return { 
-        success: true, 
-        message: "Password reset successfully" 
+    return {
+        success: true,
+        message: "Password reset successfully"
     };
 };
 

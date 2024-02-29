@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "axios": "^1.6.7",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
@@ -9,6 +10,7 @@
     "google-auth-library": "^9.6.3",
     "gridfs-stream": "^1.1.1",
     "helmet": "^7.1.0",
+    "http": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "multer-gridfs-storage": "^5.0.2",
@@ -19,7 +21,9 @@
     "passport-facebook": "^3.0.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-oauth2": "^1.8.0",
-    "uuid": "^9.0.1"
+    "socket.io": "^4.7.4",
+    "uuid": "^9.0.1",
+    "ws": "^8.16.0"
   },
   "name": "server",
   "version": "1.0.0",

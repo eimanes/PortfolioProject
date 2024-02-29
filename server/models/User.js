@@ -51,7 +51,8 @@ const UserSchema = new Schema(
         occupation: String,
         viewedProfile: Number,
         impressions: Number,
-        verified: Boolean
+        verified: Boolean,
+        
 
     }, { timestamps: true }
 );

@@ -1,0 +1,40 @@
+stages:
+  - mirror
+  - test
+
+copy_all:
+  stage: mirror
+  variables:
+    URL: "https://${ES_NAME}:${ES_TOKEN}${REPO_ALL}"
+  script:
+    - git config user.email "${ES_EMAIL}"
+    - git config user.name "${ES_NAME}"
+    - git clone --mirror "${URL}" copy_all
+    - cd copy_all
+    - git push --mirror
+  after_script:
+    - rm -rf copy_all
+
+copy_server:
+  stage: mirror
+  variables:
+    URL: "https://${ES_NAME}:${ES_TOKEN}${SERVER_REPO}"
+  script:
+    - git config user.email "${ES_EMAIL}"
+    - git config user.name "${ES_NAME}"
+    - git clone --depth=1 "${URL}" copy_server
+    - cd copy_server
+    - git rm -r .
+    - cp -r ../server/. .
+    - git add .
+    - git commit -m "Mirror server directory"
+    - git push origin master
+  after_script:
+    - rm -rf copy_server
+
+test_server:
+  stage: test
+  script:
+    - cd server
+    - npm install
+    - npm test

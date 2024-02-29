@@ -3,7 +3,7 @@ variables:
   ES_NAME: "eimanes"
 
 stages:
-  - mirror
+  # - mirror
   - test
 
 variables:

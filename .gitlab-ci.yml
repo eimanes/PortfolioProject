@@ -1,3 +1,7 @@
+variables:
+  ES_EMAIL: "eimansalleh.5@gmail.com"
+  ES_NAME: "eimanes"
+
 stages:
   - mirror
   - test

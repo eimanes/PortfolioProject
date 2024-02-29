@@ -10,12 +10,11 @@ copy_all:
     - git config user.email "${ES_EMAIL}"
     - git config user.name "${ES_NAME}"
     - git remote add copy_all "${URL}"
-    - git checkout $CI_COMMIT_REF_NAME
-    - git push --force copy_all $CI_COMMIT_REF_NAME
+    - git fetch copy_all || git checkout --detach copy_all/main || git checkout --detach copy_all/main || git checkout --orphan latest_copy_all
+    - git push --force copy_all latest_copy_all:$CI_COMMIT_REF_NAME
   after_script:
     - git remote remove copy_all
-
-
+    - git checkout $CI_COMMIT_REF_NAME
 
 copy_server:
   stage: mirror
@@ -26,10 +25,12 @@ copy_server:
     - git config user.name "${ES_NAME}"
     - cd server
     - git remote add copy_server "${URL}"
-    - git checkout $CI_COMMIT_REF_NAME
-    - git push --force copy_server $CI_COMMIT_REF_NAME
+    - git fetch copy_server || git checkout --detach copy_server/main || git checkout --detach copy_server/main || git checkout --orphan latest_copy_server
+    - git push --force copy_server latest_copy_server:$CI_COMMIT_REF_NAME
   after_script:
     - git remote remove copy_server
+    - git checkout $CI_COMMIT_REF_NAME
+    - cd ..
 
 test_server:
   stage: test

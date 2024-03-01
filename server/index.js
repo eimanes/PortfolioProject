@@ -48,7 +48,7 @@ app.use(passport.session());
 /*ROUTES */
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
-app.use('/socket', socketRoute(io));
+app.use('/socket', socketRoute);
 
 /*MONGOOSE SETUP */
 const PORT = process.env.PORT || 3001;

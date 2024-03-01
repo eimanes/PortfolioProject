@@ -1,14 +1,14 @@
 import express from "express";
 import multer from "multer";
 import { verifyToken } from "../middleware/auth.middleware.js"
-import { 
-    getUserController, 
-    getUsersListController, 
+import {
+    getUserController,
+    getUsersListController,
     updateUserController,
     changeUsernameReqController,
     confirmChangeUsernameController,
     deleteUserReqController,
-    confirmDeleteUserController 
+    confirmDeleteUserController
 } from "../controllers/user.controller.js";
 const router = express.Router();
 

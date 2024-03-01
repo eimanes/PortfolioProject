@@ -1,16 +1,21 @@
-import { 
-    getUserService, 
-    getUsersListService, 
-    updateUserService, 
-    changeUsernameReqService, 
-    confirmChangeUsernameService, 
-    deleteUserReqService, 
-    confirmDeleteUserService 
+import {
+    getUserService,
+    getUsersListService,
+    updateUserService,
+    changeUsernameReqService,
+    confirmChangeUsernameService,
+    deleteUserReqService,
+    confirmDeleteUserService
 } from "../services/user.service.js";
 
 const getUserController = async (req, res, next) => {
     try {
         const {userId} = req.params;
+        //Verify that the user
+        if (req.user.userId.toString() !== userId) {
+            return res.status(403).json({ success: false, error: "Access Denied" });
+        }
+
         const user = await getUserService(userId);
         return res.status(201).json({
             user
@@ -49,6 +54,9 @@ const updateUserController = async (req, res, next) => {
     };
 
     try {
+        if (req.user.userId.toString() !== userId) {
+            return res.status(403).json({ success: false, error: "Access Denied" });
+        }
         const user = await updateUserService(userId, userData);
         return res.status(200).json({
             success: true,
@@ -76,8 +84,8 @@ const changeUsernameReqController = async (req, res) => {
 
     } catch (error) {
         console.error('Forgot password error:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             error: error.message });
     }
 };
@@ -88,7 +96,7 @@ const confirmChangeUsernameController = async (req, res) => {
     const newUsername = req.body.newUsername;
 
     const paramData = { userId, token };
-    
+
     try {
         const result = await confirmChangeUsernameService(paramData, newUsername);
         if (result.success) {
@@ -96,12 +104,12 @@ const confirmChangeUsernameController = async (req, res) => {
         } else {
             return res.status(400).json(result);
         }
-        
+
     } catch (error) {
         console.error('Change username error:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
     }
 };
@@ -122,8 +130,8 @@ const deleteUserReqController = async (req, res) => {
 
     } catch (error) {
         console.error('Delete User error:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             error: error.message });
     }
 };
@@ -131,7 +139,7 @@ const deleteUserReqController = async (req, res) => {
 /* DELETE USER */
 const confirmDeleteUserController = async (req, res) => {
     const { userId, token } = req.query;
-    
+
     try {
         const result = await confirmDeleteUserService(userId, token);
         if (result.success) {
@@ -139,22 +147,22 @@ const confirmDeleteUserController = async (req, res) => {
         } else {
             return res.status(400).json(result);
         }
-        
+
     } catch (error) {
         console.error('Delete user error:', error);
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
     }
 };
 
-export { 
-    getUserController, 
-    getUsersListController, 
-    updateUserController, 
-    changeUsernameReqController, 
-    confirmChangeUsernameController, 
-    deleteUserReqController, 
-    confirmDeleteUserController 
+export {
+    getUserController,
+    getUsersListController,
+    updateUserController,
+    changeUsernameReqController,
+    confirmChangeUsernameController,
+    deleteUserReqController,
+    confirmDeleteUserController
 };

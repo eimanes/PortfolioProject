@@ -23,7 +23,7 @@ const deleteUnverifiedUsers = async () => {
     }
 };
 
-/* RANDOM TOKEN */
+/* RANDOM TOKEN FOR VERIFICATION, FORGOT PASSWORD, ANY OTHER*/
 const generateRandomToken = (length = 10) => (
     crypto.randomBytes(Math.ceil(length / 2))
         .toString('hex')
@@ -309,6 +309,7 @@ const resendVerificationEmailService = async (email) => {
 const signInService = async (username, password, rememberMe = false) => {
 
     let user;
+
     // Check if the username is a valid email format
     const isEmailFormat = /\S+@\S+\.\S+/.test(username);
 
@@ -331,29 +332,27 @@ const signInService = async (username, password, rememberMe = false) => {
     if (!isMatch) {
         return {
             success: false,
-            error: "Invalid Password!"
+            error: "Invalid Password"
         };
     }
 
-    if (user.verified === false) {
+    if (!user.verified) {
         return {
             success: false,
-            error: "User has not verified"
+            error: "User not verified"
         };
     }
 
-    const fifteenDays = 15 * 24 * 60 * 60 * 1000;
-    const oneHour = 60 * 60 * 1000;
-    const expirationTime = rememberMe ? fifteenDays : oneHour;
-    const token = jwt.sign({ id: user.userId }, process.env.JWT_SECRET, { expiresIn: expirationTime });
+    const expirationTime = rememberMe ? '15d' : '1h';
+    const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET, { expiresIn: expirationTime });
     const time = new Date();
-    const expirationDate = new Date(time.getTime() + expirationTime);
+    const expirationDate = new Date(time.getTime() + (rememberMe ? 15 : 1) * 24 * 60 * 60 * 1000);
     delete user.password;
     return {
         success: true,
         token,
         loginAt: time,
-        RememberMe,
+        rememberMe,
         expirationDate,
         user,
     };

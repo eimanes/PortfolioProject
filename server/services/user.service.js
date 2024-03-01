@@ -63,7 +63,7 @@ const getUsersListService = async (skip, limit, name, occupation, location) => {
     if (location) {
         filter.location = { $regex: location, $options: 'i' };
     }
-    
+
 
     const users = await User.find(filter).skip(skip).limit(limit);
     return users;
@@ -72,10 +72,10 @@ const getUsersListService = async (skip, limit, name, occupation, location) => {
 const updateUserService = async (userId, userData) => {
 
     const {
-        firstName, 
-        lastName, 
-        location, 
-        occupation, 
+        firstName,
+        lastName,
+        location,
+        occupation,
         picturePath
     } = userData;
 
@@ -134,7 +134,7 @@ const changeUsernameReqService = async (userId) => {
         return {
             status: 404,
             success: false,
-            error: "User not found" 
+            error: "User not found"
         };
     }
 
@@ -147,15 +147,15 @@ const changeUsernameReqService = async (userId) => {
         { userId, isUsername: true },
         {
             uniqueString: verificationToken,
-            expiresAt: new Date(Date.now() + 15 * 60 * 1000) 
+            expiresAt: new Date(Date.now() + 15 * 60 * 1000)
         },
-        { upsert: true, new: true } 
+        { upsert: true, new: true }
     );
     if (!userVertification) {
         return {
             status: 404,
             success: false,
-            error: "User vertification not found" 
+            error: "User vertification not found"
         };
     }
 
@@ -181,9 +181,9 @@ const changeUsernameReqService = async (userId) => {
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
                 console.error('Error sending username reset email:', error);
-                reject ({ 
-                    success: false, 
-                    error: 'Failed to send username reset email' 
+                reject ({
+                    success: false,
+                    error: 'Failed to send username reset email'
                 });
             } else {
                 console.log('Username reset email sent:', info.response);
@@ -211,16 +211,16 @@ const confirmChangeUsernameService = async (paramData, username) => {
     // Check if the new username meets the requirements
     const usernameRegex = /^[a-zA-Z0-9_]+$/; // Allows alphanumeric characters and underscore
     if (!usernameRegex.test(username)) {
-        return { 
-            success: false, 
-            error: "Username can only contain alphanumeric characters and underscore" 
+        return {
+            success: false,
+            error: "Username can only contain alphanumeric characters and underscore"
         };
     }
 
     if (username.length < 5) {
-        return { 
-            success: false, 
-            error: "Username must be at least 5 characters long" 
+        return {
+            success: false,
+            error: "Username must be at least 5 characters long"
         };
     }
 
@@ -236,9 +236,9 @@ const confirmChangeUsernameService = async (paramData, username) => {
 
     // Check if the verification token has expired
     if (userVerification.expiresAt < Date.now()) {
-        return { 
-            success: false, 
-            error: "Verification token expired" 
+        return {
+            success: false,
+            error: "Verification token expired"
         };
     }
 
@@ -246,9 +246,9 @@ const confirmChangeUsernameService = async (paramData, username) => {
     const user = await User.findOne({ userId });
 
     if (!user) {
-        return { 
-            success: false, 
-            error: "User not found" 
+        return {
+            success: false,
+            error: "User not found"
         };
     }
 
@@ -258,9 +258,9 @@ const confirmChangeUsernameService = async (paramData, username) => {
     await UserVerification.findOneAndDelete(userVerification._id);
 
     // Respond with success message
-    return { 
-        success: true, 
-        message: "Username reset successfully" 
+    return {
+        success: true,
+        message: "Username reset successfully"
     };
 };
 
@@ -268,9 +268,9 @@ const confirmChangeUsernameService = async (paramData, username) => {
 const deleteUserReqService = async (userId) => {
 
     if (!userId || userId.trim() === '') {
-        return { 
-            success: false, 
-            error: "UserId is required" 
+        return {
+            success: false,
+            error: "UserId is required"
         };
     }
 
@@ -282,7 +282,7 @@ const deleteUserReqService = async (userId) => {
         return {
             status: 404,
             success: false,
-            error: "User not found" 
+            error: "User not found"
         };
     }
 
@@ -295,15 +295,15 @@ const deleteUserReqService = async (userId) => {
         { userId, isDeleteUser: true },
         {
             uniqueString: verificationToken,
-            expiresAt: new Date(Date.now() + 15 * 60 * 1000) 
+            expiresAt: new Date(Date.now() + 15 * 60 * 1000)
         },
-        { upsert: true, new: true } 
+        { upsert: true, new: true }
     );
     if (!userVerification) {
         return {
             status: 404,
             success: false,
-            error: "User vertification not found" 
+            error: "User vertification not found"
         };
     }
 
@@ -329,9 +329,9 @@ const deleteUserReqService = async (userId) => {
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
                 console.error('Error sending delete user email:', error);
-                reject ({ 
-                    success: false, 
-                    error: 'Failed to send delete user email' 
+                reject ({
+                    success: false,
+                    error: 'Failed to send delete user email'
                 });
             } else {
                 console.log('Delete user email sent:', info.response);
@@ -366,9 +366,9 @@ const confirmDeleteUserService = async (userId, token) => {
 
     // Check if the verification token has expired
     if (userVerification.expiresAt < Date.now()) {
-        return { 
-            success: false, 
-            error: "Verification token expired" 
+        return {
+            success: false,
+            error: "Verification token expired"
         };
     }
 
@@ -376,9 +376,9 @@ const confirmDeleteUserService = async (userId, token) => {
     const user = await User.findOne({userId});
 
     if (!user) {
-        return { 
-            success: false, 
-            error: "User not found" 
+        return {
+            success: false,
+            error: "User not found"
         };
     }
 
@@ -387,9 +387,9 @@ const confirmDeleteUserService = async (userId, token) => {
     await UserVerification.findOneAndDelete(userVerification._id);
 
     // Respond with success message
-    return { 
-        success: true, 
-        message: "User deleted successfully" 
+    return {
+        success: true,
+        message: "User deleted successfully"
     };
 };
 

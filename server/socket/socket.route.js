@@ -1,5 +1,5 @@
 import express from "express";
-import { socketController } from "../controllers/socket.controller.js";
+import { socketController } from "./socket.controller.js";
 
 const router = express.Router();
 

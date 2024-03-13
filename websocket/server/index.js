@@ -28,59 +28,6 @@ wss.on('connection', (ws, req) => {
   wsController.handleWebSocketConnection(ws, req, secretKey); // Replace with your actual secret key
 });
 
-// wss.on('connection', (ws, req) => {
-//   // Extract JWT from the headers of the WebSocket handshake request
-//   const authHeader = req.headers.authorization;
-//   const token = authHeader.split(" ")[1];
-//   console.log(token);
-
-//   // Verify JWT
-//   jwt.verify(token, secretKey, (err, decoded) => {
-//     if (err) {
-//       // JWT verification failed, reject WebSocket connection
-//       console.log('Denied');
-//       ws.terminate();
-//     } else {
-//       // JWT verification succeeded, authorize WebSocket connection
-//       const { username, role } = decoded;
-
-//       // For simplicity, allow all authenticated users
-//       if (role === 'user') {
-//         console.log(`WebSocket connection authorized for user: ${username}`);
-
-//         // Set up idle timeout to close the connection after inactivity
-//         const idleTimeout = setTimeout(() => {
-//           ws.terminate(); // Close the connection
-//           console.log("inactive");
-//         }, process.env.IDLE_TIMEOUT);
-
-//         // Ping interval to keep the connection alive
-//         const pingInterval = setInterval(() => {
-//           if (ws.readyState === WebSocket.OPEN) {
-//             ws.ping();
-//             console.log("pingged");
-//           }
-//         }, process.env.PING_INTERVAL);
-
-//         // Handle WebSocket events for the authorized connection
-//         ws.on('message', (message) => {
-//           console.log(`Received WebSocket message from ${username}: ${message}`);
-//           // Process WebSocket messages
-//         });
-
-//         ws.on('close', () => {
-//           console.log(`WebSocket connection closed for user: ${username}`);
-//           clearInterval(pingInterval);
-//           clearTimeout(idleTimeout);
-//           // Clean up or handle disconnection
-//         });
-//       } else {
-//         // Role not authorized, reject WebSocket connection
-//         ws.terminate();
-//       }
-//     }
-//   });
-// });
 
 const PORT = process.env.PORT;
 

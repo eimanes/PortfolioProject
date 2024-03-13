@@ -13,13 +13,13 @@ const FetchSocket = async ( callback ) => {
       let jwtToken = '';
       let data = JSON.stringify({
         "username": user,
-        "password": "yourSecretKey"
+        "room": "9"
       });
       
       let config = {
         method: 'put',
         maxBodyLength: Infinity,
-        url: 'http://localhost:3050/login',
+        url: 'http://localhost:3050/login/existing',
         headers: { 
           'Content-Type': 'application/json',
         },

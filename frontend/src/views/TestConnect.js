@@ -27,44 +27,54 @@ const WebSocketComponent = () => {
         await connectSocket.FetchSocket((newToken) => {
           console.log('New JWT Token:', newToken);
           setJwtToken(newToken);
-
-          // Create a new websocket connection with the obtained or existing token
-          const wsUrl = 'ws://localhost:3050';
-          const newSocket = new WebSocket(`${wsUrl}?token=${newToken}`);
-
-          // Set up event listeners for the websocket
-          newSocket.addEventListener('open', (event) => {
-            console.log('WebSocket connection opened:', event);
-            // You can send initial data or perform other actions when the connection is open
-            newSocket.send('Hello, server!');
-          });
-
-          newSocket.addEventListener('message', (event) => {
-            // Handle incoming messages from the server
-            const newMessage = event.data;
-            setMessages((prevMessages) => [...prevMessages, newMessage]);
-          });
-
-          newSocket.addEventListener('close', (event) => {
-            console.log('WebSocket connection closed:', event);
-            // You can handle reconnection logic here if needed
-          });
-
-          // Set the socket state
-          setSocket(newSocket);
+  
+          // Create a new websocket connection only if the socket state does not exist
+          if (!socket) {
+            const wsUrl = process.env.REACT_APP_LOCAL_SOCKET_URL;
+            const newSocket = new WebSocket(`${wsUrl}?token=${newToken}`);
+  
+            // Set up event listeners for the websocket
+            newSocket.addEventListener('open', (event) => {
+              console.log('WebSocket connection opened:', event);
+              // You can send initial data or perform other actions when the connection is open
+              // newSocket.send('Hello, server!');
+            });
+  
+            newSocket.addEventListener('message', (event) => {
+              // Handle incoming messages from the server
+              const newMessage = event.data;
+              console.log(newMessage);
+              setMessages((prevMessages) => [...prevMessages, newMessage]);
+            });
+  
+            newSocket.addEventListener('close', (event) => {
+              console.log('WebSocket connection closed:', event);
+              const newMessage = "Inactive";
+              setMessages((prevMessages) => [...prevMessages, newMessage]);
+              // You can handle reconnection logic here if needed
+            });
+  
+            // Set the socket state
+            setSocket(newSocket);
+          }
         });
-    
-        // ... rest of the code
       } catch (error) {
         console.error('Error setting up WebSocket:', error);
       }
     };
-
+  
     setupWebSocket();
-
+  
+    // Clean up existing WebSocket connection when component unmounts or JWT token changes
+    return () => {
+      if (socket) {
+        socket.close();
+      }
+    };
+  
     // Dependency array is empty, so this effect runs once after the initial render
   }, [jwtToken]);
-
+  
   const [formData, setFormData] = useState({
     send: '',
     // email: '',

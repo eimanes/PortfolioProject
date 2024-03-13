@@ -2,6 +2,7 @@
 
 const WebSocket = require('ws');
 const jwt = require('jsonwebtoken');
+const clients = new Set();
 
 const handleWebSocketConnection = (ws, req, secretKey) => {
   // Extract JWT from the headers of the WebSocket handshake request
@@ -45,6 +46,7 @@ const verifyToken = (token, secretKey, callback) => {
 
 const handleAuthorizedConnection = (ws, decoded) => {
   const { username, role } = decoded;
+  clients.add(ws);
 
   // For simplicity, allow all authenticated users
   if (role === 'user') {
@@ -67,12 +69,21 @@ const handleAuthorizedConnection = (ws, decoded) => {
 
     // Handle WebSocket events for the authorized connection
     ws.on('message', (message) => {
-      console.log(`Received WebSocket message from ${username}: ${message}`);
       // Process WebSocket messages
+      console.log(`Received WebSocket message from ${username}: ${message}`);
+      clients.forEach((client) => {
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
+          // Send a response back to the client
+          const responseMessage = `${username}: ${message}`;
+          client.send(responseMessage);
+        }
+      });
+      
+      
 
-      // Send a response back to the client
-      const responseMessage = `${username}: ${message}`;
-      ws.send(responseMessage);
+      // // Send a response back to the client
+      // const responseMessage = ` ${message}`;
+      // ws.send(responseMessage);
     });
 
     ws.on('close', () => {
